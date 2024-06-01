@@ -11,10 +11,8 @@ public class MarkdownOutlineButton : MonoBehaviour
     private AnimationCurve animationCurve;
     private MarkdownDocs markdownDocs;
 
-    public void Setup(string headerText, int headerLevel, RectTransform scrollRect, AnimationCurve animationCurve, MarkdownDocs instance)
-    {      
-        this.scrollRect = scrollRect;
-        this.animationCurve = animationCurve;
+    public void Setup(string headerText, int headerLevel, MarkdownDocs instance)
+    {
         markdownDocs = instance;
 
         // Set the button text with indentation
@@ -30,31 +28,8 @@ public class MarkdownOutlineButton : MonoBehaviour
 
     private void OnButtonClicked()
     {
-        Coroutine animationRoutine = markdownDocs.animationRoutine;
-
-        if (animationRoutine != null)
-        {
-            StopCoroutine(animationRoutine);
-        }
-
-        markdownDocs.animationRoutine = StartCoroutine(LerpPosition(headerPosition, 1f)); // 1f is the duration of the lerp
+        markdownDocs.LerpPosition(headerPosition);
     }
 
-    private IEnumerator LerpPosition(float targetPosition, float duration)
-    {
-        float time = 0;
-        Vector3 startPosition = scrollRect.localPosition;
 
-        while (time < duration)
-        {
-            float t = time / duration;
-            float curveValue = animationCurve.Evaluate(t);
-            scrollRect.localPosition = new Vector3(startPosition.x, Mathf.Lerp(startPosition.y, targetPosition, curveValue), startPosition.z);
-
-            time += Time.deltaTime;
-            yield return null;
-        }
-
-        scrollRect.localPosition = new Vector3(startPosition.x, targetPosition, startPosition.z);
-    }
 }

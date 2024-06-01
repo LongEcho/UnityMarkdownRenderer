@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using TMPro;
@@ -32,6 +33,7 @@ public class MarkdownDocs : MonoBehaviour
 
     [Tooltip("Use this to control the animation when a outline button has been pressed.")]
     public AnimationCurve scrollAnimation = new AnimationCurve(new Keyframe(0f, 0f, 0f, 2f), new Keyframe(1f, 1f, 2f, 0f));
+    public float scrollAnimationDuration = 1;
 
     [Header("Experimental")]
     [Tooltip("This can cause issues. Be careful!")]
@@ -206,7 +208,7 @@ public class MarkdownDocs : MonoBehaviour
 
             GameObject button = Instantiate(buttonPrefab, buttonContainer);
             MarkdownOutlineButton outlineButton = button.GetComponent<MarkdownOutlineButton>();
-            outlineButton.Setup(headerText, headerLevel, scrollRect, scrollAnimation, this);
+            outlineButton.Setup(headerText, headerLevel, this);
             headerObjects[i].GetComponent<TMP_Text>().ForceMeshUpdate();
             StartCoroutine(SetHeaderPositions(headerObjects[i], outlineButton));
             i++;
@@ -218,5 +220,33 @@ public class MarkdownDocs : MonoBehaviour
         yield return new WaitForEndOfFrame();
         float headerPos = 0 - headerObject.GetComponent<RectTransform>().localPosition.y;
         button.SetHeaderPosition(headerPos);
+    }
+
+    public void LerpPosition(float targetPosition)
+    {
+        if (animationRoutine != null)
+        {
+            StopCoroutine(animationRoutine);
+        }
+
+        animationRoutine = StartCoroutine(LerpPositionRoutine(targetPosition));
+    }
+
+    private IEnumerator LerpPositionRoutine(float targetPosition)
+    {
+        float time = 0;
+        Vector3 startPosition = scrollRect.localPosition;
+
+        while (time < scrollAnimationDuration)
+        {
+            float t = time / scrollAnimationDuration;
+            float curveValue = scrollAnimation.Evaluate(t);
+            scrollRect.localPosition = new Vector3(startPosition.x, Mathf.Lerp(startPosition.y, targetPosition, curveValue), startPosition.z);
+
+            time += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        scrollRect.localPosition = new Vector3(startPosition.x, targetPosition, startPosition.z);
     }
 }
